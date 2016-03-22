@@ -32,18 +32,18 @@ int main(int argc, const char * argv[]) {
     OC_insert(container1, ptr6);   // 4
     print_containter(container1);  // 3 4 5
     OC_insert(container1, ptr4);
-    print_containter(container1); // 3 5 7
+    print_containter(container1); // 3 4 5 7
     OC_insert(container1, ptr1);
-    print_containter(container1); // 1 3 5 7
+    print_containter(container1); // 1 3 4 5 7
     OC_insert(container1, ptr8);
-    print_containter(container1); // 1 3 5 7 8
+    print_containter(container1); // 1 3 4 5 7 8
     
-    printf("%d\n",OC_get_size(container1)); // 5
+    printf("%d\n",OC_get_size(container1)); // 6
     printf("%d\n",OC_empty(container1));    // 0
     OC_clear(container1);
     printf("%d\n",OC_get_size(container1));
     
-    /*
+    
     OC_insert(container1, ptr3);
     print_containter(container1); // 5
     OC_insert(container1, ptr2);
@@ -81,9 +81,9 @@ int main(int argc, const char * argv[]) {
     print_containter(container1);  // 3 4 5
     OC_insert(container1, ptr5);   // 2
     print_containter(container1);  // 2 3 4 5
-    printf("%d\n",OC_get_size(container1));
+    printf("%d\n",OC_get_size(container1)); // 4
 
-    */
+    
 
     
 
