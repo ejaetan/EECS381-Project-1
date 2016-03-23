@@ -13,6 +13,7 @@
 #include "Ordered_container.h"
 #include "Utility.h"
 
+void print_int(int* given_int);
 
 int main(int argc, const char * argv[]) {
     
@@ -83,6 +84,8 @@ int main(int argc, const char * argv[]) {
     print_containter(container1);  // 2 3 4 5
     printf("%d\n",OC_get_size(container1)); // 4
 
+    OC_apply(container1, (OC_apply_fp_t)print_int); // 2 3 4 5
+    printf("\n");
     
 
     
@@ -90,6 +93,13 @@ int main(int argc, const char * argv[]) {
     
     
     return 0;
+    
+    
+}
+
+
+void print_int(int* given_int) {
+    printf("%d\t", *given_int);
 }
 
 

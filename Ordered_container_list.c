@@ -222,6 +222,56 @@ void* OC_find_item_arg(const struct Ordered_container* c_ptr, const void* arg_pt
     return (found_result == 0) ? (void*) current_node : NULL;
 }
 
+void OC_apply(const struct Ordered_container* c_ptr, OC_apply_fp_t afp) {
+    if (c_ptr) {
+        struct LL_Node *current_node = c_ptr->first;
+        while (current_node) {
+            afp(current_node->data_ptr);
+            current_node = current_node->next;
+        }
+    }
+}
+
+int OC_apply_if(const struct Ordered_container* c_ptr, OC_apply_if_fp_t afp) {
+    int result = -1;
+    
+    if (c_ptr) {
+        struct LL_Node *current_node = c_ptr->first;
+        
+        while ( (current_node) &&
+               ((result = afp(current_node->data_ptr)) == 0)) {
+            current_node = current_node->next;
+        }
+    }
+    return result;
+}
+
+void OC_apply_arg(const struct Ordered_container* c_ptr,
+                  OC_apply_arg_fp_t afp, void* arg_ptr) {
+    if (c_ptr) {
+        struct LL_Node *current_node = c_ptr->first;
+        while (current_node) {
+            afp(current_node->data_ptr, arg_ptr);
+            current_node = current_node->next;
+        }
+    }
+}
+
+int OC_apply_if_arg(const struct Ordered_container* c_ptr, OC_apply_if_arg_fp_t afp, void* arg_ptr) {
+    int result = -1;
+    
+    if (c_ptr) {
+        struct LL_Node *current_node = c_ptr->first;
+        
+        while ( (current_node) &&
+               ((result = afp(current_node->data_ptr, arg_ptr)) == 0)) {
+            current_node = current_node->next;
+        }
+    }
+    return result;
+    
+}
+
 /* Helper function */
 void print_containter(struct Ordered_container* c_ptr);
 
