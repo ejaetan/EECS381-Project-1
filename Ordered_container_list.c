@@ -166,16 +166,17 @@ void OC_insert(struct Ordered_container* c_ptr, void* data_ptr) {
                 struct LL_Node* new_node_prev = c_ptr->last;
                 new_node_prev->next = new_node;
                 new_node->prev = new_node_prev;
-                new_node->next = NULL;
                 c_ptr->last = new_node;
+                c_ptr->last->next = NULL;
+                
             
             } else {
                 // insert new item as the first item of the list
                 if (!current_node->prev) {
                     current_node->prev = new_node;
-                    new_node->next = current_node;
-                    new_node->prev = NULL;
                     c_ptr->first = new_node;
+                    c_ptr->first->next = current_node;
+                    c_ptr->first->prev = NULL;
                 
                 // insert new item in the middle item of the list
                 } else {
