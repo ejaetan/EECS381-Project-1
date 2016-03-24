@@ -53,13 +53,52 @@ void set_Meeting_time(struct Meeting* meeting_ptr, int time) {
 int add_Meeting_participant(struct Meeting* meeting_ptr, const struct Person* person_ptr) {
     
     assert(meeting_ptr);
-    if (OC_find_item(meeting_ptr->participants,(struct Person*) person_ptr)) {
+    if (OC_find_item(meeting_ptr->participants, (void*) person_ptr)) {
         return 0;
     } else {
-        OC_insert(meeting_ptr->participants, (struct Person*) person_ptr);
+        OC_insert(meeting_ptr->participants, (void*) person_ptr);
         return -1;
     }
 }
+
+int is_Meeting_participant_present(const struct Meeting* meeting_ptr, const struct Person * person_ptr) {
+    
+    assert(meeting_ptr);
+    if (OC_find_item(meeting_ptr->participants, (void*) person_ptr)) {
+        return -1;
+    } else {
+        return 0;
+    }
+    
+}
+
+int remove_Meeting_participant(struct Meeting* meeting_ptr, const struct Person* person_ptr) {
+    
+    assert(meeting_ptr);
+    if (OC_find_item(meeting_ptr->participants, (void*) person_ptr)) {
+        OC_delete_item(meeting_ptr->participants,(void*) person_ptr);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+void print_Meeting(const struct Meeting* meeting_ptr) {
+    
+    assert(meeting_ptr);
+    printf("Meeting time: %d, Topic: %s\nParticipants:", meeting_ptr->time, meeting_ptr->topic);
+    
+    assert(meeting_ptr->participants);
+    if (OC_get_size(meeting_ptr->participants) == 0) {
+        printf("None\n");
+    } else {
+        printf("\n");
+        OC_apply(meeting_ptr->participants, (print_Person));
+    }
+    
+}
+
+
 
 /* Helper functions */
 int time_conversion(int time) {

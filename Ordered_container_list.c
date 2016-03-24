@@ -2,34 +2,35 @@
 #include "Utility.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 
 
-/* struct LL_Node structure declaration. This declaration is local to this file. 
-This is a two-way or doubly-linked list. Each node has a pointer to the previous 
-node and another pointer to the next node in the list. This means insertions or
-removals of a node can be made in constant time, once the location has been
-determined. */
-struct LL_Node { 
+/* struct LL_Node structure declaration. This declaration is local to this file.
+ This is a two-way or doubly-linked list. Each node has a pointer to the previous
+ node and another pointer to the next node in the list. This means insertions or
+ removals of a node can be made in constant time, once the location has been
+ determined. */
+struct LL_Node {
     struct LL_Node* prev;      /* pointer to the previous node */
-	struct LL_Node* next;		/* pointer to the next node */
-	void* data_ptr; 			/* uncommitted pointer to the data item */
+    struct LL_Node* next;		/* pointer to the next node */
+    void* data_ptr; 			/* uncommitted pointer to the data item */
 };
 
 /* Helper function's prototype */
 int equals_or_justOver(const struct Ordered_container* c_ptr, void* data_ptr, OC_comp_fp_t comp_func, struct LL_Node ** current_node);
 
 
-/* Declaration for Ordered_container. This declaration is local to this file.  
-A pointer is maintained to the last node in the list as well as the first, 
-meaning that additions to the end of the list can be made in constant time. 
-The number of nodes in the list is kept up-to-date in the size member
-variable, so that the size of the list can be accessed in constant time. */
+/* Declaration for Ordered_container. This declaration is local to this file.
+ A pointer is maintained to the last node in the list as well as the first,
+ meaning that additions to the end of the list can be made in constant time.
+ The number of nodes in the list is kept up-to-date in the size member
+ variable, so that the size of the list can be accessed in constant time. */
 struct Ordered_container {
-	OC_comp_fp_t comp_func;
-	struct LL_Node* first;
-	struct LL_Node* last;
-	int size;
+    OC_comp_fp_t comp_func;
+    struct LL_Node* first;
+    struct LL_Node* last;
+    int size;
 };
 
 /*
@@ -95,39 +96,46 @@ void* OC_get_data_ptr(const void* item_ptr) {
 }
 
 void OC_delete_item(struct Ordered_container* c_ptr, void* item_ptr) {
-    if (c_ptr) {
-        struct LL_Node *current_node, *current_node_prev, *current_node_next;
-        current_node = item_ptr;
-        
-        if (OC_get_size(c_ptr) > 1) {
-            
-            // delete item is the first one of the list
-            if (!current_node->prev) {
-                c_ptr->first = current_node->next;
-                c_ptr->first->prev = NULL;
-             
+    assert(c_ptr);
+    struct LL_Node *current_node, *current_node_prev = NULL, *current_node_next = NULL;
+    int OC_size = c_ptr->size;
+    current_node = item_ptr;
+    
+    
+    assert((OC_size) > 0);
+
+    if ((OC_size) == 1) {
+        current_node = c_ptr->first = c_ptr->last = NULL;
+    } else {
+    
+        // delete item is the first one of the list
+        if (!current_node->prev) {
+            c_ptr->first = current_node_prev = current_node->next;
+            current_node_next = current_node_prev->next;
+            c_ptr->first->prev = NULL;
             // delete item is in the middle of the list
-            } else if ( (current_node->prev) && (current_node->next)) {
-                current_node_prev = current_node->prev;
-                current_node_next = current_node->next;
-                current_node_prev->next = current_node_next;
-                current_node_next->prev = current_node_prev;
-                
+        } else if ( (current_node->prev) && (current_node->next)) {
+            current_node_prev = current_node->prev;
+            current_node_next = current_node->next;
             // delete item is the last one of the list
-            } else if (!current_node->next) {
-                c_ptr->last = current_node->prev;
-                c_ptr->last->next = NULL;
-            }
+        } else if (!current_node->next) {
+            c_ptr->last = current_node_next = current_node->prev;
+            current_node_prev = current_node_next->prev;
+            c_ptr->last->next = NULL;
         }
         
-        free(current_node);
-        current_node = NULL;
-        
-        c_ptr->size--;
-        g_Container_items_in_use--;
-        g_Container_items_allocated--;
-        
+        if (OC_size > 2) {
+            current_node_prev->next = current_node_next;
+            current_node_next->prev = current_node_prev;
+        }
     }
+    
+    free(current_node);
+    current_node = NULL;
+    
+    c_ptr->size--;
+    g_Container_items_in_use--;
+    g_Container_items_allocated--;
 }
 
 
@@ -149,52 +157,50 @@ int equals_or_justOver(const struct Ordered_container* c_ptr, void* data_ptr, OC
 }
 
 void OC_insert(struct Ordered_container* c_ptr, void* data_ptr) {
-    if ( c_ptr ) {
-        int OC_size = OC_get_size(c_ptr);
-        struct LL_Node* new_node = malloc_with_error_handling(sizeof(struct LL_Node));
-        new_node->data_ptr = data_ptr;
+
+    assert(c_ptr);
+    int OC_size = OC_get_size(c_ptr);
+    struct LL_Node* new_node = malloc_with_error_handling(sizeof(struct LL_Node));
+    new_node->data_ptr = data_ptr;
+    
+    if ( OC_size == 0 ) {
+        c_ptr->first = c_ptr->last = new_node;
+        c_ptr->first->prev = c_ptr->last->next = NULL;
+    } else {
+        struct LL_Node *current_node = NULL;
+        equals_or_justOver(c_ptr, data_ptr, c_ptr->comp_func,
+                           &current_node);
         
-        if ( OC_size == 0 ) {
-            c_ptr->first = c_ptr->last = new_node;
-            c_ptr->first->prev = c_ptr->last->next = NULL;
+        // insert new item as the last item of the list
+        if (!current_node) {
+            struct LL_Node* new_node_prev = c_ptr->last;
+            new_node_prev->next  = c_ptr->last = new_node;
+            new_node->prev = new_node_prev;
+            c_ptr->last->next = NULL;
+    
+            // insert new item as the first item of the list
         } else {
-            struct LL_Node *current_node = NULL;
-            equals_or_justOver(c_ptr, data_ptr, c_ptr->comp_func,
-                               &current_node);
-            if (!current_node) {
-                // insert new item as the last item of the list
-                struct LL_Node* new_node_prev = c_ptr->last;
-                new_node_prev->next = new_node;
-                new_node->prev = new_node_prev;
-                c_ptr->last = new_node;
-                c_ptr->last->next = NULL;
-                
-            
-            } else {
-                // insert new item as the first item of the list
-                if (!current_node->prev) {
-                    current_node->prev = new_node;
-                    c_ptr->first = new_node;
-                    c_ptr->first->next = current_node;
-                    c_ptr->first->prev = NULL;
+            if (!current_node->prev) {
+                c_ptr->first = current_node->prev = new_node;
+                c_ptr->first->next = current_node;
+                c_ptr->first->prev = NULL;
                 
                 // insert new item in the middle item of the list
-                } else {
-                    struct LL_Node* new_node_prev = current_node->prev;
-                    current_node->prev = new_node;
-                    new_node->next = current_node;
-                    new_node->prev = new_node_prev;
-                    new_node_prev->next = new_node;
-                }
+            } else {
+                struct LL_Node* new_node_prev = current_node->prev;
+                current_node->prev = new_node;
+                new_node->next = current_node;
+                new_node->prev = new_node_prev;
+                new_node_prev->next = new_node;
             }
-        }
-
         
-        g_Container_items_allocated++;
-        g_Container_items_in_use++;
-        c_ptr->size++;
+        }
         
     }
+    
+    g_Container_items_allocated++;
+    g_Container_items_in_use++;
+    c_ptr->size++;
 }
 
 
@@ -286,16 +292,3 @@ void print_containter(struct Ordered_container* c_ptr) {
     printf("\n");
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
