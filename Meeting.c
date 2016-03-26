@@ -88,7 +88,6 @@ void print_Meeting(const struct Meeting* meeting_ptr) {
     assert(meeting_ptr);
     printf("Meeting time: %d, Topic: %s\nParticipants:", meeting_ptr->time, meeting_ptr->topic);
     
-    assert(meeting_ptr->participants);
     if (OC_get_size(meeting_ptr->participants) == 0) {
         printf("None\n");
     } else {
@@ -100,11 +99,5 @@ void print_Meeting(const struct Meeting* meeting_ptr) {
 
 
 
-/* Helper functions */
-int time_conversion(int time) {
-    if ( (time < 5) && (time > 0) ) {
-        return time+12;
-    }
-    return  time;
-}
+
 

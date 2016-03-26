@@ -1,4 +1,4 @@
-//
+ //
 //  Utility.c
 //  Project 1 V2
 //
@@ -31,6 +31,4 @@ void* malloc_with_error_handling(size_t size) {
 }
 
 
-int compare_int_ptr(int* data_ptr1, int* data_ptr2) {
-    return (*data_ptr1 - *data_ptr2);
-}
+

@@ -52,7 +52,6 @@ No check made for whether the Meeting already exists or not. The time is express
 struct Meeting* load_Meeting(FILE* input_file, const struct Ordered_container* people);
 
 
-/* Helper functions */
-int time_conversion(int time);
+
 
 #endif

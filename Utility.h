@@ -23,5 +23,4 @@ extern int g_Meeting_memory;            /* number of meeting struct */
 /* Your own decleration and definitions */
 
 void* malloc_with_error_handling(size_t ptr);
-int compare_int_ptr(int* data_ptr1, int* data_ptr2);
 
