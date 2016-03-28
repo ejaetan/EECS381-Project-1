@@ -27,10 +27,12 @@ void add_room(struct Ordered_container* rooms_ptr);
 /* Print functions */
 void print_allocation(const struct Ordered_container* people_ptr, const struct Ordered_container* rooms_ptr);
 void print_individual(const struct Ordered_container* people_ptr);
+void print_room(const struct Ordered_container* rooms_ptr);
 
 /* Helper function for individual-related-function */
 int compare_Person_lastname_arg(const char* given_lastname_arg, struct Person* Person);
 
+/* Helper function for room-related-function */
 int compare_Rooms_num_arg(int *given_num_arg, const struct Room *room);
 int scan_room(void);
 
@@ -60,6 +62,10 @@ int main(void) {
                         break;
                     case 'i':
                         print_individual(People);
+                        break;
+                    case 'r':
+                        print_room(Rooms);
+                        break;
                     default:
                         break;
                 }
@@ -71,6 +77,7 @@ int main(void) {
                         break;
                     case 'r':
                         add_room(Rooms);
+                        break;
                     default:
                         break;
                 }
@@ -163,26 +170,6 @@ void add_room(struct Ordered_container* rooms_ptr) {
     
 }
 
-int compare_Rooms_num_arg(int* given_num_arg, const struct Room *room) {
-    return (*(int*)given_num_arg )- get_Room_number(room);
-}
-
-int scan_room(void) {
-    int room_num = 0;
-    int scan_input = scanf("%d",&room_num);
-    
-    if (scan_input != 1) {
-        printf("Could not read an integer value!\n");
-        skip_type_ahead();
-    } else if (room_num < 1) {
-        printf("Room number is not in range!\n");
-        skip_type_ahead();
-    }
-    
-    return room_num;
-    
-    
-}
 
 /* print functions */
 void print_allocation(const struct Ordered_container* People, const struct Ordered_container* Room) {
@@ -212,11 +199,50 @@ void print_individual(const struct Ordered_container* People) {
     }
 }
 
+void print_room(const struct Ordered_container* rooms_ptr) {
+    int scan_room_num = scan_room();
+    
+    if (scan_room_num <= 0) {
+        return;
+    }
+    
+    void *find_room_item_ptr = OC_find_item_arg(rooms_ptr, &scan_room_num,
+                                                (OC_find_item_arg_fp_t) compare_Rooms_num_arg);
+    
+    if (find_room_item_ptr) {
+        print_Room(OC_get_data_ptr(find_room_item_ptr));
+    } else {
+        printf("No room with that number!\n");
+    }
+}
 
+
+/* Helper function for individual-related-function */
 int compare_Person_lastname_arg(const char *given_lastname_arg,
                                 struct Person* Person) {
     return strcmp(given_lastname_arg, get_Person_lastname(Person));
     
 }
 
+/* Helper function for room-related-function */
+int compare_Rooms_num_arg(int* given_num_arg, const struct Room *room) {
+    return (*(int*)given_num_arg )- get_Room_number(room);
+}
+
+int scan_room(void) {
+    int room_num = 0;
+    int scan_input = scanf("%d",&room_num);
+    
+    if (scan_input != 1) {
+        printf("Could not read an integer value!\n");
+        skip_type_ahead();
+    } else if (room_num < 1) {
+        printf("Room number is not in range!\n");
+        skip_type_ahead();
+    }
+    
+    return room_num;
+    
+    
+}
 
