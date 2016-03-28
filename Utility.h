@@ -14,7 +14,7 @@ Then delete this comment - it is not part of the finished code */
 
 
 #define MAX_CHAR 64
-#define MAX_CHAR_INPUT "%63s"
+#define INPUT_FORMAT "%63s"
 
 /* global variable declarations for this module */
 extern int g_string_memory;				/* number of bytes used in C-strings */
