@@ -19,14 +19,14 @@
 int compare_Rooms_number(int num1, int num2);
 void skip_type_ahead(void);
 void add_individual(struct Ordered_container* People);
-
+void print_allocation(const struct Ordered_container* People, const struct Ordered_container* Room);
 
 int main(void) {
     
     char char1, char2;
     
-    struct Ordered_container *Rooms = OC_create_container((OC_comp_fp_t) compare_Rooms_number);
     struct Ordered_container *People = OC_create_container((OC_comp_fp_t) compare_Person_lastname);
+    struct Ordered_container *Rooms = OC_create_container((OC_comp_fp_t) compare_Rooms_number);
     
     assert(Rooms);
     assert(People);
@@ -42,7 +42,8 @@ int main(void) {
         switch (char1) {
             case 'p':
                 switch (char2) {
-                    case 'i':
+                    case 'a':
+                        print_allocation(People, Rooms);
                         break;
                         
                     default:
@@ -105,7 +106,7 @@ void skip_type_ahead(void) {
     scanf("%*[^\n]");
 }
 void add_individual(struct Ordered_container* People) {
-    char *firstname[MAX_CHAR], *lastname[MAX_CHAR], *phoneno[MAX_CHAR];
+    const char *firstname[MAX_CHAR], *lastname[MAX_CHAR], *phoneno[MAX_CHAR];
     int scan_input = scanf("%63s %63s %63s", firstname, lastname, phoneno);
     assert(scan_input == 3);
     
@@ -114,11 +115,21 @@ void add_individual(struct Ordered_container* People) {
     if (find_people_item_ptr) {
         printf("There is already a person with this last name!\n");
     } else {
-        struct Person* new_Person = create_Person((const char*) firstname, (const char*) lastname, (const char*) phoneno);
+        struct Person* new_Person = create_Person(firstname, lastname, phoneno);
         OC_insert(People, new_Person);
-        printf("Person %s added\n", (const char*) lastname);
+        printf("Person %s added\n", lastname);
     }
 }
 
+void print_allocation(const struct Ordered_container* People, const struct Ordered_container* Room) {
+    printf("Memory allocations:\n");
+    printf("C-strings: %d bytes total\n", g_string_memory);
+    printf("Person structs: %d\n", OC_get_size(People));
+    printf("Meeting structs: %d\n", g_Meeting_memory);
+    printf("Room structs: %d\n", OC_get_size(Room));
+    printf("Containers: %d\n", g_Container_count);
+    printf("Container items in use: %d\n", g_Container_items_in_use);
+    printf("Container items allocated: %d\n", g_Container_items_allocated);
+}
 
 
