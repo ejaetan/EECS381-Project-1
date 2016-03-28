@@ -24,11 +24,17 @@ void skip_type_ahead(void);
 void add_individual(struct Ordered_container* people_ptr);
 void add_room(struct Ordered_container* rooms_ptr);
 void add_meeting(struct Ordered_container* rooms_ptr);
+void add_participant(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
 
 /* Print functions */
 void print_allocation(const struct Ordered_container* people_ptr, const struct Ordered_container* rooms_ptr);
 void print_individual(const struct Ordered_container* people_ptr);
 void print_room(const struct Ordered_container* rooms_ptr);
+
+
+/* Functions that indicate print message */
+void unrecognized_msg(void);
+void no_such_lastname_msg(void);
 
 /* Helper function for individual-related-function */
 int compare_Person_lastname_arg(const char* given_lastname_arg, struct Person* Person);
@@ -39,6 +45,7 @@ int scan_room(void);
 
 /* Helper function for meeting-related-function */
 int scan_meeting_time(void);
+
 
 int main(void) {
     
@@ -73,6 +80,7 @@ int main(void) {
                         print_room(Rooms);
                         break;
                     default:
+                        unrecognized_msg();
                         break;
                 }
                 break;
@@ -87,7 +95,11 @@ int main(void) {
                     case 'm':
                         add_meeting(Rooms);
                         break;
+                    case 'p':
+                        add_participant(People, Rooms);
+                        break;
                     default:
+                        unrecognized_msg();
                         break;
                 }
                 break;
@@ -113,13 +125,14 @@ int main(void) {
                         break;
                         
                     default:
+                        unrecognized_msg();
                         break;
                 }
                 break;
             default:
+                unrecognized_msg();
                 break;
         }
-        skip_type_ahead();
         
     }
     
@@ -215,25 +228,55 @@ void add_meeting(struct Ordered_container* rooms_ptr) {
 
 }
 
-int scan_meeting_time(void) {
+void add_participant(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr) {
+    int scan_room_num = scan_room();
     
-    int meeting_time = 0;
-    int scan_input = scanf("%d", &meeting_time);
-    
-    if (scan_input != 1) {
-        printf("Could not read an integer value!\n");
-        skip_type_ahead();
-        return -1;
+    if (scan_room_num <= 0) {
+        return;
     }
     
-    if ((time_conversion(meeting_time) < 9) || (time_conversion(meeting_time) > 17)) {
-        printf("Time is not in range!\n");
-        skip_type_ahead();
-        return -1;
+    void *find_room_item_ptr = OC_find_item_arg(rooms_ptr, &scan_room_num,
+                                                (OC_find_item_arg_fp_t) compare_Rooms_num_arg);
+    
+    if (!find_room_item_ptr) {
+        printf("No room with that number!\n");
+        return;
     }
     
-    return meeting_time;
+    int meeting_time = scan_meeting_time();
+    
+    if (meeting_time < 0) {
+        return;
+    }
+    
+    struct Meeting *found_meeting_ptr = find_Room_Meeting((struct Room*) OC_get_data_ptr(find_room_item_ptr), meeting_time);
+    
+    if (!found_meeting_ptr) {
+        printf("No meeting at that time!\n");
+        return;
+    }
+    
+    char lastname[MAX_CHAR];
+    int scan_lastname = scanf(INPUT_FORMAT, lastname);
+    assert(scan_lastname == 1);
+    
+    void* find_people_item_ptr = OC_find_item_arg(people_ptr, lastname,
+                                                  (OC_find_item_arg_fp_t) compare_Person_lastname_arg);
+    if (!find_people_item_ptr) {
+        no_such_lastname_msg();
+        return;
+    }
+    
+    int add_participant = add_Meeting_participant(found_meeting_ptr, (struct Person*) OC_get_data_ptr(find_people_item_ptr));
+    
+    if (add_participant) {
+        printf("Participant %s added\n", lastname);
+    }
+    
+    
 }
+
+
 
 
 /* print functions */
@@ -260,7 +303,7 @@ void print_individual(const struct Ordered_container* People) {
         struct Person* found_person = OC_get_data_ptr(find_people_item_ptr);
         print_Person(found_person);
     } else {
-        printf("No person with that name!\n");
+        no_such_lastname_msg();
     }
 }
 
@@ -281,6 +324,15 @@ void print_room(const struct Ordered_container* rooms_ptr) {
     }
 }
 
+/* Functions that indicate print message */
+void unrecognized_msg(void) {
+    printf("Unrecognized command!\n");
+}
+
+void no_such_lastname_msg(void) {
+    printf("No person with that name!\n");
+}
+               
 
 /* Helper function for individual-related-function */
 int compare_Person_lastname_arg(const char *given_lastname_arg,
@@ -310,3 +362,23 @@ int scan_room(void) {
     return room_num;
 }
 
+/* Helper function for meeting-related-function */
+int scan_meeting_time(void) {
+    
+    int meeting_time = 0;
+    int scan_input = scanf("%d", &meeting_time);
+    
+    if (scan_input != 1) {
+        printf("Could not read an integer value!\n");
+        skip_type_ahead();
+        return -1;
+    }
+    
+    if ((time_conversion(meeting_time) < 9) || (time_conversion(meeting_time) > 17)) {
+        printf("Time is not in range!\n");
+        skip_type_ahead();
+        return -1;
+    }
+    
+    return meeting_time;
+}
