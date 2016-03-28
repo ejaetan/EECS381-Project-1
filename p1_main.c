@@ -23,6 +23,7 @@ void skip_type_ahead(void);
 /* Add functions */
 void add_individual(struct Ordered_container* people_ptr);
 void add_room(struct Ordered_container* rooms_ptr);
+void add_meeting(struct Ordered_container* rooms_ptr);
 
 /* Print functions */
 void print_allocation(const struct Ordered_container* people_ptr, const struct Ordered_container* rooms_ptr);
@@ -36,6 +37,9 @@ int compare_Person_lastname_arg(const char* given_lastname_arg, struct Person* P
 int compare_Rooms_num_arg(int *given_num_arg, const struct Room *room);
 int scan_room(void);
 
+/* Helper function for meeting-related-function */
+int scan_meeting_time(void);
+
 int main(void) {
     
     char char1, char2;
@@ -43,10 +47,12 @@ int main(void) {
     struct Ordered_container *People = OC_create_container((OC_comp_fp_t) compare_Person_lastname);
     struct Ordered_container *Rooms = OC_create_container((OC_comp_fp_t) compare_Rooms_number);
     
-    assert(Rooms);
-    assert(People);
+    
     
     while (1) {
+        assert(Rooms);
+        assert(People);
+        
         printf("\nEnter command: ");
         
         int var1 = scanf(" %c", &char1);
@@ -77,6 +83,9 @@ int main(void) {
                         break;
                     case 'r':
                         add_room(Rooms);
+                        break;
+                    case 'm':
+                        add_meeting(Rooms);
                         break;
                     default:
                         break;
@@ -135,7 +144,8 @@ void add_individual(struct Ordered_container* people_ptr) {
     int scan_input = scanf("%63s %63s %63s", firstname, lastname, phoneno);
     assert(scan_input == 3);
     
-    void* find_people_item_ptr = OC_find_item_arg(people_ptr, lastname, (OC_find_item_arg_fp_t) compare_Person_lastname_arg);
+    void* find_people_item_ptr = OC_find_item_arg(people_ptr, lastname,
+                                                  (OC_find_item_arg_fp_t) compare_Person_lastname_arg);
     
     if (find_people_item_ptr) {
         printf("There is already a person with this last name!\n");
@@ -165,9 +175,64 @@ void add_room(struct Ordered_container* rooms_ptr) {
         OC_insert(rooms_ptr, new_Room);
         printf("Room %d added\n", scan_room_num);
     }
+}
+
+void add_meeting(struct Ordered_container* rooms_ptr) {
+    int scan_room_num = scan_room();
     
+    if (scan_room_num <= 0) {
+        return;
+    }
     
+    void *find_room_item_ptr = OC_find_item_arg(rooms_ptr, &scan_room_num,
+                                                (OC_find_item_arg_fp_t) compare_Rooms_num_arg);
     
+    if (!find_room_item_ptr) {
+        printf("No room with that number!\n");
+        return;
+    }
+    
+    int meeting_time = scan_meeting_time();
+    
+    if (meeting_time < 0) {
+        return;
+    }
+    
+    struct Meeting *found_meeting_ptr = find_Room_Meeting((struct Room*) OC_get_data_ptr(find_room_item_ptr), meeting_time);
+    
+    if (found_meeting_ptr) {
+        printf("There is already a meeting at that time!\n");
+        return;
+    } else {
+        char topic[MAX_CHAR];
+        scanf(INPUT_FORMAT, topic);
+        found_meeting_ptr = create_Meeting(meeting_time, topic);
+        add_Room_Meeting((struct Room*)OC_get_data_ptr(find_room_item_ptr), found_meeting_ptr);
+        printf("Meeting added at %d\n", meeting_time);
+    }
+        
+    
+
+}
+
+int scan_meeting_time(void) {
+    
+    int meeting_time = 0;
+    int scan_input = scanf("%d", &meeting_time);
+    
+    if (scan_input != 1) {
+        printf("Could not read an integer value!\n");
+        skip_type_ahead();
+        return -1;
+    }
+    
+    if ((time_conversion(meeting_time) < 9) || (time_conversion(meeting_time) > 17)) {
+        printf("Time is not in range!\n");
+        skip_type_ahead();
+        return -1;
+    }
+    
+    return meeting_time;
 }
 
 
@@ -230,19 +295,18 @@ int compare_Rooms_num_arg(int* given_num_arg, const struct Room *room) {
 }
 
 int scan_room(void) {
-    int room_num = 0;
+    int room_num = -1;
     int scan_input = scanf("%d",&room_num);
     
     if (scan_input != 1) {
         printf("Could not read an integer value!\n");
         skip_type_ahead();
-    } else if (room_num < 1) {
+        return room_num;
+    }
+    if (room_num < 1) {
         printf("Room number is not in range!\n");
         skip_type_ahead();
     }
-    
     return room_num;
-    
-    
 }
 
