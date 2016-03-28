@@ -65,8 +65,4 @@ void print_person_lastname(struct Person* person_ptr) {
     
 }
 
-int compare_Person_lastname(struct Person *Person1, struct Person *Person2) {
-   return strcmp(Person1->lastname, Person2->lastname);
-    
-}
 

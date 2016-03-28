@@ -31,15 +31,18 @@ struct Meeting* create_Meeting(int time, const char* topic) {
 }
 
 void destroy_Meeting(struct Meeting* meeting_ptr) {
-    assert(meeting_ptr);
-    g_string_memory -= (strlen(meeting_ptr->topic) + 1);
-    g_Meeting_memory--;
+    if (meeting_ptr) {
+        g_string_memory -= (strlen(meeting_ptr->topic) + 1);
+        g_Meeting_memory--;
+        
+        OC_destroy_container(meeting_ptr->participants);
+        free(meeting_ptr->topic);
+        meeting_ptr->topic = NULL;
+        free(meeting_ptr);
+        meeting_ptr = NULL;
+    }
     
-    OC_destroy_container(meeting_ptr->participants);
-    free(meeting_ptr->topic);
-    meeting_ptr->topic = NULL;
-    free(meeting_ptr);
-    meeting_ptr = NULL;
+
     
 }
 

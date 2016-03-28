@@ -8,8 +8,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "Utility.h"
-#include "Person.h"
+
+
 
 /* initialize global variables */
 int g_string_memory = 0;
@@ -29,6 +31,12 @@ void* malloc_with_error_handling(size_t size) {
     
     return new_ptr;
 }
+
+int compare_Person_lastname(struct Person *Person1, struct Person *Person2) {
+    return strcmp(get_Person_lastname(Person1), get_Person_lastname(Person2));
+    
+}
+
 
 
 
