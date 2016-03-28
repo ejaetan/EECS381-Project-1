@@ -19,12 +19,20 @@
 /* Functions Prototype */
 int compare_Rooms_number(int num1, int num2);
 void skip_type_ahead(void);
-void add_individual(struct Ordered_container* people_ptr);
 
-/* print functions */
+/* Add functions */
+void add_individual(struct Ordered_container* people_ptr);
+void add_room(struct Ordered_container* rooms_ptr);
+
+/* Print functions */
 void print_allocation(const struct Ordered_container* people_ptr, const struct Ordered_container* rooms_ptr);
 void print_individual(const struct Ordered_container* people_ptr);
+
+/* Helper function for individual-related-function */
 int compare_Person_lastname_arg(const char* given_lastname_arg, struct Person* Person);
+
+int compare_Rooms_num_arg(int *given_num_arg, const struct Room *room);
+int scan_room(void);
 
 int main(void) {
     
@@ -61,7 +69,8 @@ int main(void) {
                     case 'i':
                         add_individual(People);
                         break;
-                        
+                    case 'r':
+                        add_room(Rooms);
                     default:
                         break;
                 }
@@ -111,6 +120,8 @@ int compare_Rooms_number(int num1, int num2) {
 void skip_type_ahead(void) {
     scanf("%*[^\n]");
 }
+
+/* Add funtions */
 void add_individual(struct Ordered_container* people_ptr) {
     const char firstname[MAX_CHAR], lastname[MAX_CHAR], phoneno[MAX_CHAR];
     
@@ -127,6 +138,50 @@ void add_individual(struct Ordered_container* people_ptr) {
         OC_insert(people_ptr, new_Person);
         printf("Person %s added\n", lastname);
     }
+}
+
+void add_room(struct Ordered_container* rooms_ptr) {
+    int scan_room_num = scan_room();
+    
+    if (scan_room_num <= 0) {
+        return;
+    }
+    
+    void *find_room_item_ptr = OC_find_item_arg(rooms_ptr, &scan_room_num,
+                                                (OC_find_item_arg_fp_t) compare_Rooms_num_arg);
+    
+    if (find_room_item_ptr) {
+        printf("There is already a room with this number!\n");
+        skip_type_ahead();
+    } else {
+        struct Room *new_Room = create_Room(scan_room_num);
+        OC_insert(rooms_ptr, new_Room);
+        printf("Room %d added\n", scan_room_num);
+    }
+    
+    
+    
+}
+
+int compare_Rooms_num_arg(int* given_num_arg, const struct Room *room) {
+    return (*(int*)given_num_arg )- get_Room_number(room);
+}
+
+int scan_room(void) {
+    int room_num = 0;
+    int scan_input = scanf("%d",&room_num);
+    
+    if (scan_input != 1) {
+        printf("Could not read an integer value!\n");
+        skip_type_ahead();
+    } else if (room_num < 1) {
+        printf("Room number is not in range!\n");
+        skip_type_ahead();
+    }
+    
+    return room_num;
+    
+    
 }
 
 /* print functions */
@@ -156,6 +211,7 @@ void print_individual(const struct Ordered_container* People) {
         printf("No person with that name!\n");
     }
 }
+
 
 int compare_Person_lastname_arg(const char *given_lastname_arg,
                                 struct Person* Person) {
