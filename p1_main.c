@@ -31,6 +31,7 @@ void print_allocation(const struct Ordered_container* people_ptr, const struct O
 void print_individual(const struct Ordered_container* people_ptr);
 void print_room(const struct Ordered_container* rooms_ptr);
 void print_meeting(const struct Ordered_container* rooms_ptr);
+void print_schedule(const struct Ordered_container* rooms_ptr);
 
 
 /* Functions that indicate print message */
@@ -84,6 +85,9 @@ int main(void) {
                         break;
                     case 'm':
                         print_meeting(Rooms);
+                        break;
+                    case 's':
+                        print_schedule(Rooms);
                         break;
                     default:
                         unrecognized_msg();
@@ -332,6 +336,15 @@ void print_meeting(const struct Ordered_container* rooms_ptr) {
     }
     
     print_Meeting(found_meeting_ptr);
+}
+
+void print_schedule(const struct Ordered_container* rooms_ptr) {
+    int OC_size = OC_get_size(rooms_ptr);
+    if (OC_size > 0) {
+        printf("Information for %d rooms:\n", OC_get_size(rooms_ptr));
+        OC_apply(rooms_ptr, (OC_apply_fp_t) print_Room);
+    }
+    
 }
 
 
