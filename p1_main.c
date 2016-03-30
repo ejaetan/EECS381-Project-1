@@ -34,6 +34,12 @@ void print_meeting(const struct Ordered_container* rooms_ptr);
 void print_schedule(const struct Ordered_container* rooms_ptr);
 void print_group(const struct Ordered_container* people_ptr);
 
+/* Delete functions */
+void delete_individual(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
+
+/* Helper function for delete_individual */
+int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person);
+
 /* Functions that indicate print message */
 void unrecognized_msg(void);
 void no_such_lastname_msg(void);
@@ -45,10 +51,13 @@ int compare_Person_lastname_arg(const char* given_lastname_arg, struct Person* P
 /* Helper function for room-related-function */
 int compare_Rooms_num_arg(int *given_num_arg, const struct Room *room);
 int scan_room(void);
-void* verify_room(const struct Ordered_container* rooms_ptr);
+void* verify_Room(const struct Ordered_container* rooms_ptr);
 
 /* Helper function for meeting-related-function */
 int scan_meeting_time(void);
+
+/* Helper function for lastname-related-function */
+void* verify_lastname(const struct Ordered_container* people_ptr);
 
 
 int main(void) {
@@ -119,6 +128,15 @@ int main(void) {
             case 'r':
                 break;
             case 'd':
+                switch (char2) {
+                    case 'i':
+                        delete_individual(People, Rooms);
+                        break;
+                        
+                    default:
+                        unrecognized_msg();
+                        break;
+                }
                 break;
             case 's':
                 break;
@@ -205,7 +223,7 @@ void add_room(struct Ordered_container* rooms_ptr) {
 
 void add_meeting(struct Ordered_container* rooms_ptr) {
     
-    void* found_room_item_ptr = verify_room(rooms_ptr);
+    void* found_room_item_ptr = verify_Room(rooms_ptr);
     
     if (!found_room_item_ptr) {
         return;
@@ -238,7 +256,7 @@ void add_meeting(struct Ordered_container* rooms_ptr) {
 
 
 void add_participant(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr) {
-    void* found_room_item_ptr = verify_room(rooms_ptr);
+    void *found_room_item_ptr = verify_Room(rooms_ptr);
     
     if (!found_room_item_ptr) {
         return;
@@ -258,25 +276,23 @@ void add_participant(struct Ordered_container* people_ptr, struct Ordered_contai
         return;
     }
     
-    char lastname[MAX_CHAR];
-    int scan_lastname = scanf(INPUT_FORMAT, lastname);
-    assert(scan_lastname == 1);
+    void *found_lastname_item_ptr = verify_lastname(people_ptr);
     
-    void* find_people_item_ptr = OC_find_item_arg(people_ptr, lastname,
-                                                  (OC_find_item_arg_fp_t) compare_Person_lastname_arg);
-    if (!find_people_item_ptr) {
-        no_such_lastname_msg();
+    if (!found_lastname_item_ptr) {
         return;
     }
     
-    int add_participant = add_Meeting_participant(found_meeting_ptr, (struct Person*) OC_get_data_ptr(find_people_item_ptr));
+    struct Person *found_Person = (struct Person*) OC_get_data_ptr(found_lastname_item_ptr);
+    
+    int add_participant = add_Meeting_participant(found_meeting_ptr, found_Person);
     
     if (add_participant) {
-        printf("Participant %s added\n", lastname);
+        printf("Participant %s added\n", get_Person_lastname(found_Person));
     }
     
     
 }
+
 
 
 
@@ -293,24 +309,21 @@ void print_allocation(const struct Ordered_container* People, const struct Order
     printf("Container items allocated: %d\n", g_Container_items_allocated);
 }
 
-void print_individual(const struct Ordered_container* People) {
-    const char lastname[MAX_CHAR];
+void print_individual(const struct Ordered_container* people_ptr) {
+ 
+    void *found_lastname_item_ptr = verify_lastname(people_ptr);
     
-    int scan_input = scanf(INPUT_FORMAT, lastname);
-    assert(scan_input == 1);
-    
-    void* find_people_item_ptr = OC_find_item_arg(People, lastname, (OC_find_item_arg_fp_t) compare_Person_lastname_arg);
-    
-    if (find_people_item_ptr) {
-        struct Person* found_person = OC_get_data_ptr(find_people_item_ptr);
-        print_Person(found_person);
-    } else {
-        no_such_lastname_msg();
+    if (!found_lastname_item_ptr) {
+        return;
     }
+    
+    struct Person* found_Person = OC_get_data_ptr(found_lastname_item_ptr);
+    print_Person(found_Person);
+
 }
 
 void print_room(const struct Ordered_container* rooms_ptr) {
-    void* found_room_item_ptr = verify_room(rooms_ptr);
+    void* found_room_item_ptr = verify_Room(rooms_ptr);
     
     if (found_room_item_ptr) {
         print_Room(OC_get_data_ptr(found_room_item_ptr));
@@ -319,7 +332,7 @@ void print_room(const struct Ordered_container* rooms_ptr) {
 
 
 void print_meeting(const struct Ordered_container* rooms_ptr) {
-    void* found_room_item_ptr = verify_room(rooms_ptr);
+    void* found_room_item_ptr = verify_Room(rooms_ptr);
     
     if (!found_room_item_ptr) {
         return;
@@ -358,6 +371,33 @@ void print_group(const struct Ordered_container* people_ptr) {
         OC_apply(people_ptr, (OC_apply_fp_t) print_Person);
     }
 }
+
+/* Delete functions */
+void delete_individual(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr) {
+    void *found_lastname_item_ptr = verify_lastname(people_ptr);
+    
+    if (!found_lastname_item_ptr) {
+        return;
+    }
+    
+    struct Person *found_Person = OC_get_data_ptr(found_lastname_item_ptr);
+    int apply_result = OC_apply_if_arg(rooms_ptr, (OC_apply_if_arg_fp_t) call_OC_apply_if_arg, found_Person);
+    
+    if (apply_result) {
+        printf("This person is a participant in a meeting!\n");
+        skip_type_ahead();
+        return;
+    }
+    
+    OC_delete_item(people_ptr, found_lastname_item_ptr);
+    printf("Person %s deleted\n", get_Person_lastname(found_Person));
+}
+
+/* Helper function for delete function */
+int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person) {
+    return OC_apply_if_arg(get_Room_Meetings(room_ptr), (OC_apply_if_arg_fp_t) is_Meeting_participant_present, found_Person);
+}
+
 
 /* Functions that indicate print message */
 void unrecognized_msg(void) {
@@ -403,7 +443,7 @@ int scan_room(void) {
     return room_num;
 }
 
-void* verify_room(const struct Ordered_container* rooms_ptr) {
+void* verify_Room(const struct Ordered_container* rooms_ptr) {
     
     int scan_room_num = scan_room();
     
@@ -417,7 +457,6 @@ void* verify_room(const struct Ordered_container* rooms_ptr) {
     if (!find_room_item_ptr) {
         printf("No room with that number!\n");
         skip_type_ahead();
-        return NULL;
     }
     
     return find_room_item_ptr;
@@ -441,4 +480,20 @@ int scan_meeting_time(void) {
     }
     
     return meeting_time;
+}
+
+/* Helper function for lastname-related-function */
+void* verify_lastname(const struct Ordered_container* people_ptr) {
+    char lastname[MAX_CHAR];
+    int scan_lastname = scanf(INPUT_FORMAT, lastname);
+    assert(scan_lastname == 1);
+    
+    void* find_people_item_ptr = OC_find_item_arg(people_ptr, lastname,
+                                                  (OC_find_item_arg_fp_t) compare_Person_lastname_arg);
+    if (!find_people_item_ptr) {
+        no_such_lastname_msg();
+        skip_type_ahead();
+    }
+    
+    return  find_people_item_ptr;
 }
