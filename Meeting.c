@@ -68,9 +68,9 @@ int is_Meeting_participant_present(const struct Meeting* meeting_ptr, const stru
     
     assert(meeting_ptr);
     if (OC_find_item(meeting_ptr->participants, (void*) person_ptr)) {
-        return -1;
-    } else {
         return 0;
+    } else {
+        return -1;
     }
     
 }
