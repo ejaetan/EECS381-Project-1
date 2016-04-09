@@ -41,6 +41,7 @@ void delete_meeting(struct Ordered_container* rooms_ptr);
 void delete_participant(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
 void delete_schedule(struct Ordered_container* rooms_ptr);
 void delete_group(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
+void delete_all(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
 
 /* Helper function for delete_individual */
 int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person);
@@ -153,6 +154,9 @@ int main(void) {
                         break;
                     case 'g':
                         delete_group(People, Rooms);
+                        break;
+                    case 'a':
+                        delete_all(People, Rooms);
                         break;
                     default:
                         unrecognized_msg();
@@ -479,7 +483,16 @@ void delete_group(struct Ordered_container* people_ptr, struct Ordered_container
     
     OC_apply(people_ptr, (OC_apply_fp_t) destroy_Person);
     OC_clear(people_ptr);
-    printf("”All persons deleted\n");
+    printf("All persons deleted\n");
+}
+
+void delete_all(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr) {
+    OC_apply(rooms_ptr, (OC_apply_fp_t) destroy_Room);
+    printf("All meetings deleted\n");
+    OC_clear(rooms_ptr);
+    printf("All rooms deleted\n");
+    delete_group(people_ptr, rooms_ptr);
+    
 }
 
 
