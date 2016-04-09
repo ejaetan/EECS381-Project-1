@@ -39,6 +39,7 @@ void delete_individual(struct Ordered_container* people_ptr, struct Ordered_cont
 void delete_room(struct Ordered_container* rooms_ptr);
 void delete_meeting(struct Ordered_container* rooms_ptr);
 void delete_participant(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
+void delete_schedule(struct Ordered_container* rooms_ptr);
 
 /* Helper function for delete_individual */
 int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person);
@@ -145,6 +146,9 @@ int main(void) {
                         break;
                     case 'p':
                         delete_participant(People, Rooms);
+                        break;
+                    case 's':
+                        delete_schedule(Rooms);
                         break;
                     default:
                         unrecognized_msg();
@@ -455,9 +459,12 @@ void delete_participant(struct Ordered_container* people_ptr, struct Ordered_con
     
     remove_Meeting_participant(found_meeting_ptr, found_Person);
     printf("Participant %s deleted\n", get_Person_lastname(found_Person));
-    
-    
 }
+
+void delete_schedule(struct Ordered_container* rooms_ptr) {
+    OC_apply(rooms_ptr, (OC_apply_fp_t) clear_Room);
+}
+
 
 /* Helper function for delete function */
 int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person) {
