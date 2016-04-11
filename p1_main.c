@@ -389,10 +389,16 @@ void print_schedule(const struct Ordered_container* rooms_ptr) {
 void print_group(const struct Ordered_container* people_ptr) {
     int OC_size = OC_get_size(people_ptr);
     
+    if (!OC_size) {
+        printf("List of people is empty\n");
+        return;
+    }
+    
     if (OC_size > 0) {
         printf("Information for %d people:\n", OC_size);
         OC_apply(people_ptr, (OC_apply_fp_t) print_Person);
     }
+    
 }
 
 /* Delete functions */
