@@ -43,14 +43,16 @@ void delete_schedule(struct Ordered_container* rooms_ptr);
 void delete_group(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
 void delete_all(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
 
-/* Helper function for delete_individual */
-int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person);
+/* Reschedule functions */
+void reschedule_meeting(struct Ordered_container* rooms_ptr);
+
 
 /* Functions that indicate print message */
 void unrecognized_msg(void);
 void no_such_lastname_msg(void);
 void int_not_read_msg(void);
 void no_meeting_msg(void);
+void exist_meeting_msg(void);
 
 /* Helper function for individual-related-function */
 int compare_Person_lastname_arg(const char* given_lastname_arg, struct Person* Person);
@@ -66,6 +68,9 @@ struct Meeting* verify_Meeting(void* found_room_item_ptr);
 
 /* Helper function for lastname-related-function */
 void* verify_lastname(const struct Ordered_container* people_ptr);
+
+/* Helper function for delete_individual */
+int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person);
 
 
 int main(void) {
@@ -134,6 +139,14 @@ int main(void) {
                 }
                 break;
             case 'r':
+                switch (char2) {
+                    case 'm':
+                        reschedule_meeting(Rooms);
+                        break;
+                    default:
+                        unrecognized_msg();
+                        break;
+                }
                 break;
             case 'd':
                 switch (char2) {
@@ -263,8 +276,7 @@ void add_meeting(struct Ordered_container* rooms_ptr) {
     struct Meeting* found_meeting_ptr = find_Room_Meeting((struct Room*) OC_get_data_ptr(found_room_item_ptr), meeting_time);
 
     if (found_meeting_ptr) {
-        printf("There is already a meeting at that time!\n");
-        skip_type_ahead();
+        exist_meeting_msg();
         return;
     } else {
         char topic[MAX_CHAR];
@@ -495,10 +507,50 @@ void delete_all(struct Ordered_container* people_ptr, struct Ordered_container* 
     
 }
 
+/* Reschedule functions */
+void reschedule_meeting(struct Ordered_container* rooms_ptr) {
+    void* found_old_room_item_ptr = verify_Room(rooms_ptr);
+    
+    if (!found_old_room_item_ptr) {
+        return;
+    }
+    
+    struct Meeting* found_old_meeting_ptr = verify_Meeting(found_old_room_item_ptr);
+    
+    if (!found_old_meeting_ptr) {
+        return;
+    }
+    
+    void* found_new_room_item_ptr = verify_Room(rooms_ptr);
+    
+    if (!found_new_room_item_ptr) {
+        return;
+    }
+    
+    struct Meeting* found_new_meeting_ptr = NULL;
+    int new_meeting_time = scan_meeting_time();
+    
+    if (new_meeting_time < 0) {
+        return;
+    }
+    
+    found_new_meeting_ptr = find_Room_Meeting((struct Room*) OC_get_data_ptr(found_new_room_item_ptr), new_meeting_time);
+    
+    
+    if (found_new_meeting_ptr) {
+        exist_meeting_msg();
+        return;
+    }
 
-/* Helper function for delete function */
-int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person) {
-    return OC_apply_if_arg(get_Room_Meetings(room_ptr), (OC_apply_if_arg_fp_t) is_Meeting_participant_present, found_Person);
+    struct Meeting* reschedule_meeting = found_old_meeting_ptr;
+    int remove_Meeting_result = remove_Room_Meeting(OC_get_data_ptr(found_old_room_item_ptr), found_old_meeting_ptr);
+    assert(!remove_Meeting_result);
+    
+    set_Meeting_time(reschedule_meeting, new_meeting_time);
+    int add_Meeting_result = add_Room_Meeting(OC_get_data_ptr(found_new_room_item_ptr), reschedule_meeting);
+    assert(!add_Meeting_result);
+    
+    printf("Meeting rescheduled to room %d at %d\n", get_Room_number(OC_get_data_ptr(found_new_room_item_ptr)), new_meeting_time);
 }
 
 
@@ -520,6 +572,11 @@ void int_not_read_msg(void) {
 
 void no_meeting_msg(void) {
     printf("No meeting at that time!\n");
+    skip_type_ahead();
+}
+
+void exist_meeting_msg(void) {
+    printf("There is already a meeting at that time!\n");
     skip_type_ahead();
 }
 
@@ -621,4 +678,10 @@ void* verify_lastname(const struct Ordered_container* people_ptr) {
     }
     
     return  find_people_item_ptr;
+}
+
+
+/* Helper function for delete function */
+int call_OC_apply_if_arg(const struct Room* room_ptr, struct Person* found_Person) {
+    return OC_apply_if_arg(get_Room_Meetings(room_ptr), (OC_apply_if_arg_fp_t) is_Meeting_participant_present, found_Person);
 }
