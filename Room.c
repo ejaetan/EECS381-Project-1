@@ -4,6 +4,11 @@
 #include "Meeting.h"
 #include <assert.h>
 
+/* Helper functions */
+int time_conversion(int time);
+int compare_Meeting_time(struct Meeting* meeting_ptr1, struct Meeting* meeting_ptr2);
+int compare_Meeting_time_arg(int *given_time, const struct Meeting* meeting_ptr);
+
 /* a Room contains a container of meetings and a room number */
 struct Room {
 	struct Ordered_container* meetings;	/* a container of pointers to Meeting objects */
@@ -93,6 +98,46 @@ void print_Room(const struct Room* room_ptr) {
     }
 }
 
+/* Write the room data to a file. */
+void save_Room(const struct Room* room_ptr, FILE* outfile) {
+    if (outfile) {
+        fprintf(outfile, "%d %d\n", get_Room_number(room_ptr), OC_get_size(room_ptr->meetings));
+        OC_apply_arg(room_ptr->meetings, (OC_apply_arg_fp_t) save_Meeting, outfile);
+    } else {
+        couldnt_open_file_msg();
+    }
+}
+
+/* Read a room's data from a file stream, create the data object and
+ return a pointer to it, NULL if invalid data discovered in file.
+ No check made for whether the room already exists or not. */
+struct Room* load_Room(FILE* infile, const struct Ordered_container* people) {
+    if (!infile) {
+        couldnt_open_file_msg();
+        return NULL;
+    }
+    
+    struct Room* new_Room = NULL;
+    int total_meeting = 0, room_number = 0;
+    
+    int scan_result = fscanf(infile, "%d %d\n", &room_number, &total_meeting);
+    if (scan_result != 2) {
+        invalid_data_msg();
+        return NULL;
+    }
+    assert(room_number && total_meeting);
+    
+    new_Room = create_Room(room_number);
+    
+    for (; total_meeting > 0; total_meeting--) {
+        struct Meeting* new_Meeting = load_Meeting(infile, people);
+        add_Room_Meeting(new_Room, new_Meeting);
+    }
+    
+    return new_Room;
+    
+}
+
 
 /* Helper functions */
 int time_conversion(int time) {
@@ -101,6 +146,7 @@ int time_conversion(int time) {
     }
     return  time;
 }
+
 int compare_Meeting_time(struct Meeting* meeting_ptr1,
                          struct Meeting* meeting_ptr2) {
     return (time_conversion(get_Meeting_time(meeting_ptr1)) -

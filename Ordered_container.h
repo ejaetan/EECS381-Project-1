@@ -188,7 +188,6 @@ If the function returns non-zero, the iteration is terminated, and that value
 returned. Otherwise, zero is returned. The contents of the container cannot be modified */
 int OC_apply_if_arg(const struct Ordered_container* c_ptr, OC_apply_if_arg_fp_t afp, void* arg_ptr);
 
-/* Helper function */
-void print_container(struct Ordered_container* c_ptr);
+
 
 #endif

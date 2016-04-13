@@ -57,7 +57,6 @@ void print_Participant_lastname(const struct Person * person_ptr, FILE *outfile)
 
 /* Helper function for load_Meeting */
 struct Person* find_participant_from_infile(const struct Ordered_container* people, FILE *input_file);
-//int compare_Person_with_given_lastname(const struct Person *Person, const char *given_lastname);
-int compare_Person_with_given_lastname2(const char * given_lastname, const struct Person *person_ptr );
+int compare_Person_with_given_lastname(const char * given_lastname, const struct Person *person_ptr);
 
 #endif

@@ -54,10 +54,7 @@ return a pointer to it, NULL if invalid data discovered in file.
 No check made for whether the room already exists or not. */
 struct Room* load_Room(FILE* infile, const struct Ordered_container* people);
 
-/* Helper functions */
-int time_conversion(int time);
-int compare_Meeting_time(struct Meeting* meeting_ptr1, struct Meeting* meeting_ptr2);
-int compare_Meeting_time_arg(int *given_time, const struct Meeting* meeting_ptr);
+
 
 
 #endif

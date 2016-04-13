@@ -5,6 +5,8 @@
 #include <string.h>
 #include <assert.h>
 
+/* Helper function prototype */
+void print_person_lastname(struct Person* person_ptr);
 
 
 /* a Person consist of pointers to C-strings for names and phone number */
@@ -93,8 +95,5 @@ void print_person_lastname(struct Person* person_ptr) {
     
 }
 
-int compare_Person_lastname(struct Person *Person1, struct Person *Person2) {
-    return strcmp(get_Person_lastname(Person1), get_Person_lastname(Person2));
-    
-}
+
 

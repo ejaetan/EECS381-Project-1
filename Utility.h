@@ -15,7 +15,7 @@ extern int g_Meeting_memory;            /* number of meeting struct */
 
 /* Your own decleration and definitions */
 void* malloc_with_error_handling(size_t ptr);
-
+int compare_Person_lastname(struct Person *Person1, struct Person *Person2);
 
 /* Error message function */
 void couldnt_open_file_msg(void);

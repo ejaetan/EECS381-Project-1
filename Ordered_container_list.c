@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+/* Helper function */
+void print_container(struct Ordered_container* c_ptr);
 
 
 /* struct LL_Node structure declaration. This declaration is local to this file.
@@ -147,13 +149,6 @@ int equals_or_justOver(const struct Ordered_container* c_ptr, void* data_ptr, OC
     
     int result = -1;
     *current_node = c_ptr->first;
-    
-    /*
-    while ( (*current_node) &&
-           ((result = comp_func((*current_node)->data_ptr, data_ptr)) < 0) ) {
-        *current_node = (*current_node)->next;
-    }
-     */
     
     while ( (*current_node) &&
            ((result = comp_func(data_ptr, (*current_node)->data_ptr)) > 0) ) {

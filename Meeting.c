@@ -102,7 +102,7 @@ void print_Meeting(const struct Meeting* meeting_ptr) {
 
 void save_Meeting(const struct Meeting* meeting_ptr, FILE* outfile) {
     if (outfile) {
-        fprintf(outfile, "%d %s %d", meeting_ptr->time, meeting_ptr->topic, OC_get_size(meeting_ptr->participants));
+        fprintf(outfile, "%d %s %d\n", meeting_ptr->time, meeting_ptr->topic, OC_get_size(meeting_ptr->participants));
         OC_apply_arg(meeting_ptr->participants, (OC_apply_arg_fp_t) print_Participant_lastname, outfile);
         
     } else {
@@ -123,13 +123,13 @@ struct Meeting* load_Meeting(FILE* input_file, const struct Ordered_container* p
     int time = 0, total_participants = 0;
     struct Meeting *new_Meeting = NULL;
     
-    int scan_result = fscanf(input_file, "%d %s %d", &time, topic, &total_participants);
+    int scan_result = fscanf(input_file, "%d %s %d\n", &time, topic, &total_participants);
     if (scan_result != 3) {
         invalid_data_msg();
         return NULL;
     }
     
-    assert(time && *topic && total_participants);
+    assert(time && *topic && (total_participants >= 0));
     new_Meeting = create_Meeting(time, topic);
     
     for (; total_participants > 0; total_participants--) {
@@ -146,7 +146,7 @@ struct Meeting* load_Meeting(FILE* input_file, const struct Ordered_container* p
 
 /* Helper function for save_Meeting */
 void print_Participant_lastname(const struct Person * person_ptr, FILE *outfile) {
-    fprintf(outfile, INPUT_FORMAT, get_Person_lastname(person_ptr));
+    fprintf(outfile, "%s\n", get_Person_lastname(person_ptr));
 }
 
 /* Helper function for load_Meeting */
@@ -157,7 +157,7 @@ struct Person *find_participant_from_infile(const struct Ordered_container* peop
     int scan_lastname_result = fscanf(input_file, "%s", lastname);
     assert(scan_lastname_result == 1);
     
-    void *found_lastname_ptr = OC_find_item_arg(people, lastname, (OC_find_item_arg_fp_t) compare_Person_with_given_lastname2);
+    void *found_lastname_ptr = OC_find_item_arg(people, lastname, (OC_find_item_arg_fp_t) compare_Person_with_given_lastname);
     
     if (found_lastname_ptr) {
         found_participant = OC_get_data_ptr(found_lastname_ptr);
@@ -166,15 +166,10 @@ struct Person *find_participant_from_infile(const struct Ordered_container* peop
     return found_participant;
 }
 
-/*
-int compare_Person_with_given_lastname(const struct Person *person_ptr, const char * given_lastname) {
-    return strcmp(get_Person_lastname(person_ptr), given_lastname);
-}
- */
 
-
-int compare_Person_with_given_lastname2(const char * given_lastname, const struct Person *person_ptr ) {
+int compare_Person_with_given_lastname(const char * given_lastname, const struct Person *person_ptr ) {
     return strcmp(given_lastname, get_Person_lastname(person_ptr));
 }
+
 
 
