@@ -148,10 +148,18 @@ int equals_or_justOver(const struct Ordered_container* c_ptr, void* data_ptr, OC
     int result = -1;
     *current_node = c_ptr->first;
     
+    /*
+    while ( (*current_node) &&
+           ((result = comp_func((*current_node)->data_ptr, data_ptr)) < 0) ) {
+        *current_node = (*current_node)->next;
+    }
+     */
+    
     while ( (*current_node) &&
            ((result = comp_func(data_ptr, (*current_node)->data_ptr)) > 0) ) {
         *current_node = (*current_node)->next;
     }
+    
     
     return result;
 }
@@ -280,9 +288,9 @@ int OC_apply_if_arg(const struct Ordered_container* c_ptr, OC_apply_if_arg_fp_t 
 }
 
 /* Helper function */
-void print_containter(struct Ordered_container* c_ptr);
+void print_container(struct Ordered_container* c_ptr);
 
-void print_containter(struct Ordered_container* c_ptr) {
+void print_container(struct Ordered_container* c_ptr) {
     struct LL_Node *current_node = c_ptr->first;
     
     while (current_node) {

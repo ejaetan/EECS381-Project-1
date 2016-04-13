@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "Person.h"
 #include "Ordered_container.h"
+#include "Utility.h"
 
 int main(void) {
     char *firstname1 = "Joan", *firstname2 = "Taylor", *firstname3 = "Marilyn";
@@ -40,6 +41,15 @@ int main(void) {
     
     OC_apply(people_container, (OC_apply_fp_t) print_Person);
 
+    FILE *fp = fopen("Person_savefile.txt", "w");
+    save_Person(Person1, fp);
+    
+    fp = fopen("Person_loadfile.txt", "r");
+    
+    struct Person *load_Person1 = load_Person(fp);
+    print_Person(load_Person1);
+    fclose(fp);
+    
     return 0;
     
     

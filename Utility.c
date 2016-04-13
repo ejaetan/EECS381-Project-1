@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Utility.h"
+#include "Person.h"
 
 
 
@@ -32,11 +33,12 @@ void* malloc_with_error_handling(size_t size) {
     return new_ptr;
 }
 
-int compare_Person_lastname(struct Person *Person1, struct Person *Person2) {
-    return strcmp(get_Person_lastname(Person1), get_Person_lastname(Person2));
-    
+void couldnt_open_file_msg(void) {
+    printf("Could not open file!\n");
 }
 
-
+void invalid_data_msg(void) {
+    printf("Invalid data found in file!\n");
+}
 
 

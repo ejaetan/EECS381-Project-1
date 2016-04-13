@@ -5,6 +5,8 @@
 #include <string.h>
 #include <assert.h>
 
+
+
 /* a Person consist of pointers to C-strings for names and phone number */
 struct Person {
 	char* firstname;
@@ -57,16 +59,32 @@ void print_Person(const struct Person* person_ptr) {
     printf("%s %s %s\n", person_ptr->firstname, person_ptr->lastname, person_ptr->phoneno);
 }
 
-/* Write a Person to a file stream, as a line containing
- firstname, lastname, phoneno,  whitespace-separated with a final \n character. */
 void save_Person(const struct Person* person_ptr, FILE* outfile) {
-    
+    if (outfile) {
+        fprintf(outfile, "%s %s %s\n", person_ptr->firstname, person_ptr->lastname, person_ptr->phoneno);
+    } else {
+        couldnt_open_file_msg();
+    }
 }
 
-/* Read a Person's data from a file stream, create the data object and
- return a pointer to it, NULL if invalid data discovered in file.
- No check made for whether the Person already exists or not. */
-struct Person* load_Person(FILE* infile);
+struct Person* load_Person(FILE* infile) {
+    if (!infile) {
+        couldnt_open_file_msg();
+        return NULL;
+    }
+    
+    char firstname[MAX_CHAR], lastname[MAX_CHAR], phoneno[MAX_CHAR];
+    int scan_result = fscanf(infile, "%63s %63s %63s\n", firstname, lastname, phoneno);
+    if (scan_result != 3) {
+        invalid_data_msg();
+        return NULL;
+    }
+    
+    assert(*firstname && *lastname && *phoneno);
+    struct Person* new_Person = create_Person(firstname, lastname, phoneno);
+    return new_Person;
+}
+
 
 /* Helper function */
 void print_person_lastname(struct Person* person_ptr) {
@@ -75,4 +93,8 @@ void print_person_lastname(struct Person* person_ptr) {
     
 }
 
+int compare_Person_lastname(struct Person *Person1, struct Person *Person2) {
+    return strcmp(get_Person_lastname(Person1), get_Person_lastname(Person2));
+    
+}
 

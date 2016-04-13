@@ -52,6 +52,12 @@ No check made for whether the Meeting already exists or not. The time is express
 struct Meeting* load_Meeting(FILE* input_file, const struct Ordered_container* people);
 
 
+/* Helper function for save_Meeting */
+void print_Participant_lastname(const struct Person * person_ptr, FILE *outfile);
 
+/* Helper function for load_Meeting */
+struct Person* find_participant_from_infile(const struct Ordered_container* people, FILE *input_file);
+//int compare_Person_with_given_lastname(const struct Person *Person, const char *given_lastname);
+int compare_Person_with_given_lastname2(const char * given_lastname, const struct Person *person_ptr );
 
 #endif

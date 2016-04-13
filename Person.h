@@ -36,8 +36,8 @@ return a pointer to it, NULL if invalid data discovered in file.
 No check made for whether the Person already exists or not. */
 struct Person* load_Person(FILE* infile);
 
-/* Helper function */
+/* Helper function prototype */
 void print_person_lastname(struct Person* person_ptr);
-
+int compare_Person_lastname(struct Person *Person1, struct Person *Person2);
 
 #endif
