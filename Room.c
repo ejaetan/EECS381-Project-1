@@ -5,7 +5,6 @@
 #include <assert.h>
 
 /* Helper functions */
-int time_conversion(int time);
 int compare_Meeting_time(struct Meeting* meeting_ptr1, struct Meeting* meeting_ptr2);
 int compare_Meeting_time_arg(int *given_time, const struct Meeting* meeting_ptr);
 
@@ -125,7 +124,7 @@ struct Room* load_Room(FILE* infile, const struct Ordered_container* people) {
         invalid_data_msg();
         return NULL;
     }
-    assert(room_number && total_meeting);
+    assert(room_number && (total_meeting >= 0));
     
     new_Room = create_Room(room_number);
     
@@ -140,13 +139,6 @@ struct Room* load_Room(FILE* infile, const struct Ordered_container* people) {
 
 
 /* Helper functions */
-int time_conversion(int time) {
-    if ( (time < 5) && (time > 0) ) {
-        return time += 12;
-    }
-    return  time;
-}
-
 int compare_Meeting_time(struct Meeting* meeting_ptr1,
                          struct Meeting* meeting_ptr2) {
     return (time_conversion(get_Meeting_time(meeting_ptr1)) -

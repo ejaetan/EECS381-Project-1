@@ -18,7 +18,7 @@
 
 /* Functions Prototype */
 int compare_Rooms_number(int num1, int num2);
-void skip_type_ahead(void);
+
 
 /* Add functions */
 void add_individual(struct Ordered_container* people_ptr);
@@ -46,6 +46,11 @@ void delete_all(struct Ordered_container* people_ptr, struct Ordered_container* 
 /* Reschedule functions */
 void reschedule_meeting(struct Ordered_container* rooms_ptr);
 
+/* save data function */
+void save_data(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
+
+/* load data function */
+void load_data(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr);
 
 /* Functions that indicate print message */
 void unrecognized_msg(void);
@@ -177,8 +182,25 @@ int main(void) {
                 }
                 break;
             case 's':
+                switch (char2) {
+                    case 'd':
+                        save_data(People, Rooms);
+                        break;
+                    default:
+                        unrecognized_msg();
+                        break;
+                }
                 break;
             case 'l':
+                switch (char2) {
+                    case 'd':
+                        load_data(People, Rooms);
+                        break;;
+                        
+                    default:
+                        unrecognized_msg();
+                        break;
+                }
                 break;
             case 'q':
                 switch (char2) {
@@ -215,9 +237,6 @@ int compare_Rooms_number(int num1, int num2) {
     return num1 - num2;
 }
 
-void skip_type_ahead(void) {
-    scanf("%*[^\n]");
-}
 
 /* Add funtions */
 void add_individual(struct Ordered_container* people_ptr) {
@@ -309,7 +328,7 @@ void add_participant(struct Ordered_container* people_ptr, struct Ordered_contai
     
     struct Person *found_Person = (struct Person*) OC_get_data_ptr(found_lastname_item_ptr);
     
-    if (!(is_Meeting_participant_present(found_meeting_ptr, found_Person))) {
+    if (is_Meeting_participant_present(found_meeting_ptr, found_Person)) {
         printf("This person is already a participant!\n");
         return;
     }
@@ -418,7 +437,7 @@ void delete_individual(struct Ordered_container* people_ptr, struct Ordered_cont
     struct Person *found_Person = OC_get_data_ptr(found_lastname_item_ptr);
     int apply_result = OC_apply_if_arg(rooms_ptr, (OC_apply_if_arg_fp_t) call_OC_apply_if_arg, found_Person);
     
-    if (apply_result) {
+    if (!apply_result) {
         printf("This person is a participant in a meeting!\n");
         skip_type_ahead();
         return;
@@ -482,8 +501,8 @@ void delete_participant(struct Ordered_container* people_ptr, struct Ordered_con
     }
     
     struct Person *found_Person = (struct Person*) OC_get_data_ptr(found_lastname_item_ptr);
-    
-    if (is_Meeting_participant_present(found_meeting_ptr, found_Person)) {
+    int validate_participant = is_Meeting_participant_present(found_meeting_ptr, found_Person);
+    if (!validate_participant) {
         printf("This person is not a participant in the meeting!\n");
         skip_type_ahead();
         return;
@@ -565,6 +584,92 @@ void reschedule_meeting(struct Ordered_container* rooms_ptr) {
     printf("Meeting rescheduled to room %d at %d\n", get_Room_number(OC_get_data_ptr(found_new_room_item_ptr)), new_meeting_time);
 }
 
+/* save data function */
+void save_data(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr) {
+    char filename[MAX_CHAR];
+    scanf(INPUT_FORMAT, filename);
+    
+    FILE *fp = fopen(filename, "w");
+
+    if (!fp) {
+        couldnt_open_file_msg();
+        return;
+    }
+    
+    int total_people = OC_get_size(people_ptr);
+    
+    int fprintf_people_result = fprintf(fp, "%d\n", total_people);
+    assert(fprintf_people_result > 0);
+    
+    OC_apply_arg(people_ptr, (OC_apply_arg_fp_t) save_Person, fp);
+    
+    int total_rooms = OC_get_size(rooms_ptr);
+    int fprintf_room_result = fprintf(fp, "%d\n", total_rooms);
+    assert(fprintf_room_result > 0);
+    
+    OC_apply_arg(rooms_ptr, (OC_apply_arg_fp_t) save_Room, fp);
+    
+    printf("Data saved\n");
+    fclose(fp);
+    
+}
+
+/* load data function */
+void load_data(struct Ordered_container* people_ptr, struct Ordered_container* rooms_ptr) {
+    char filename[MAX_CHAR];
+    scanf(INPUT_FORMAT, filename);
+    
+    FILE *fp = fopen(filename, "r");
+    
+    if (!fp) {
+        couldnt_open_file_msg();
+        return;
+    }
+    
+    OC_apply(rooms_ptr, (OC_apply_fp_t) destroy_Room);
+    OC_clear(rooms_ptr);
+    OC_apply(people_ptr, (OC_apply_fp_t) destroy_Person);
+    OC_clear(people_ptr);
+
+    int total_people = 0, total_room = 0;
+    int fscanf_people = fscanf(fp, "%d\n", &total_people);
+    
+    if (fscanf_people != 1) {
+        invalid_data_msg();
+        return;
+    }
+    
+    for (; total_people; total_people--) {
+        struct Person * new_Person = load_Person(fp);
+        if (!new_Person) {
+            OC_apply(people_ptr, (OC_apply_fp_t) destroy_Person);
+            OC_clear(people_ptr);
+            return;
+        }
+        
+        OC_insert(people_ptr, new_Person);
+    }
+    
+    int fscanf_room = fscanf(fp, "%d\n", &total_room);
+    
+    if (fscanf_room != 1) {
+        invalid_data_msg();
+        return;
+    }
+    
+    for (; total_room > 0; total_room--) {
+        struct Room * new_Room = load_Room(fp, people_ptr);
+        if (!new_Room) {
+            OC_apply(rooms_ptr, (OC_apply_fp_t) destroy_Room);
+            OC_clear(rooms_ptr);
+            return;
+        }
+        OC_insert(rooms_ptr, new_Room);
+    }
+    
+    printf("Data loaded\n");
+    fclose(fp);
+}
 
 /* Functions that indicate print message */
 void unrecognized_msg(void) {
@@ -591,6 +696,7 @@ void exist_meeting_msg(void) {
     printf("There is already a meeting at that time!\n");
     skip_type_ahead();
 }
+
 
 /* Helper function for individual-related-function */
 int compare_Person_lastname_arg(const char *given_lastname_arg,
