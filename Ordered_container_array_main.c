@@ -23,7 +23,12 @@ int main(void)
     
     struct Ordered_container* container1 = OC_create_container( (OC_comp_fp_t) compare_number);
     OC_insert(container1, no3);
+    print_container(container1);
     OC_insert(container1, no1);
+    print_container(container1);
+    OC_insert(container1, no5);
+    print_container(container1);
+    OC_insert(container1, no6);
     print_container(container1);
     
     return 0;

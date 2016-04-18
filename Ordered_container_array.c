@@ -6,6 +6,7 @@
 
 /* Helper function */
 void print_container(struct Ordered_container* c_ptr);
+void grow_array(struct Ordered_container* c_ptr);
 
 /* A complete type declaration for Ordered_container implemented as an array */
 struct Ordered_container {
@@ -103,120 +104,75 @@ void OC_delete_item(struct Ordered_container* c_ptr, void* item_ptr) {
 
 /* Helper function: Binary search function that determine the location of the item requested by OC_find function */
 int binary_search(const struct Ordered_container* c_ptr, const void* data_ptr,
-                   OC_comp_fp_t comp_func, int *array_index);
+                   OC_comp_fp_t comp_func, int *found_index);
 int binary_search(const struct Ordered_container* c_ptr, const void* data_ptr,
-                   OC_comp_fp_t comp_func, int *array_index) {
+                   OC_comp_fp_t comp_func, int *found_index) {
     
-    int low, high, mid;
-    array_index = 0;
+    int low, high, mid, num = -1;
+    *found_index = num;
     
     low = 0;
     high = (c_ptr->size) - 1;
     
     while (low <= high) {
         mid = ((low + high) / 2);
-        if ( comp_func(data_ptr, OC_get_data_ptr(c_ptr->array[mid]))  < 0 ) {
+        if ( comp_func(data_ptr, c_ptr->array[mid])  < 0 ) {
             high = mid - 1;
-        } else if ( comp_func(data_ptr, OC_get_data_ptr(c_ptr->array[mid]))  > 0 ) {
+        } else if ( comp_func(data_ptr, c_ptr->array[mid])  > 0 ) {
             low = mid + 1;
-        } else if ( comp_func(data_ptr, OC_get_data_ptr(c_ptr->array[mid]))  == 0 ) {
-            array_index = &mid;
+        } else if ( comp_func(data_ptr, c_ptr->array[mid])  == 0 ) {
+            *found_index = mid;
             return 0;
         }
     }
-    
-  
-    
 
-    if (!array_index) {
+    if (*found_index < 0) {
         high++;
-        array_index = &high;
+        *found_index = high;
     }
     
-    if (high == 0) {
-        return -1;
-    }
-    
-    if (high > 1) {
-        return 1;
-    }
+    return 1;
 
 }
 
 
 void OC_insert(struct Ordered_container* c_ptr, void* data_ptr) {
     assert(c_ptr);
+
+    int i = 0, search_result = -1, found_index = -1;
+    int original_array_size = c_ptr->allocation;
+    int total_items_in_original_array = c_ptr->size;
+    
+    search_result = binary_search(c_ptr, data_ptr, c_ptr->comp_fun, &found_index);
+    
+    if (original_array_size == total_items_in_original_array) {
+        grow_array(c_ptr);
+    }
+    
+    for (i = total_items_in_original_array; i > found_index; i--) {
+        c_ptr->array[i] = c_ptr->array[i - 1];
+    }
+    
+    c_ptr->array[i] = data_ptr;
+    
+    
     g_Container_items_in_use++;
     c_ptr->size++;
 
-    int array_index = 0, new_array_size = 0, search_result =  0;
-    int original_array_size = c_ptr->allocation;
-    int total_items_in_original_array = c_ptr->size;
-    void** new_array = NULL;
-    
-    // insert the first item in the array
-    if ( (array_index == 0) && (!(c_ptr->size - 1)) ) {
-        c_ptr->array[array_index] = data_ptr;
-        return;
-    }
-    
-    search_result = binary_search(c_ptr, data_ptr, c_ptr->comp_fun , &array_index);
+}
 
-    // insert at the last array index in the original array
-    if (search_result == 1) {
-        c_ptr->array[c_ptr->size] = data_ptr;
-        return;
-    }
-    
-    // double the array size
-    if ( (c_ptr->allocation) == (c_ptr->size - 1) ) {
-        new_array_size = 2 * (original_array_size + 1);
-        new_array = (void**) malloc_with_error_handling((new_array_size) * sizeof(void*));
 
+void grow_array(struct Ordered_container* c_ptr) {
+    int copy_array_size = 2 * (c_ptr->allocation + 1);
+    void** copy_array =  (void**) malloc_with_error_handling(copy_array_size * sizeof(void*));
+    
+    for (int i = 0; i < c_ptr->size; i++) {
+        copy_array[i] = c_ptr->array[i];
     }
     
-    new_array = (void**) malloc_with_error_handling((original_array_size) * sizeof(void*));
+    free(c_ptr->array);
+    c_ptr->array = copy_array;
 
-    
-    // insert at the first array index in the original array
-    if ( (search_result == -1) ||
-        ( (search_result == 0) && (array_index == 0) &&
-          (c_ptr->array[array_index] == data_ptr) ) ) {
-        for (int i = 0; i < original_array_size; i++) {
-            if (!i) {
-                new_array[i] = data_ptr;
-            }
-            new_array[i] = c_ptr->array[i - 1];
-        }
-        
-    // insert in the middle of the array of the original array
-    } else if ( (search_result == 0) &&
-                (array_index > 0) && (c_ptr->array[array_index] == data_ptr) ) {
-        
-        for (int i = 0, inserted = 0; i < original_array_size; i++) {
-            
-            new_array[i] = c_ptr->array[i];
-            
-            if (i == array_index) {
-                new_array[i] = data_ptr;
-                inserted = 1;
-            }
-            
-            if (inserted == 1) {
-                new_array[i] = c_ptr->array[i - 1];
-            }
-        }
-    }
-    
-    // delete original array
-    for (int i = 0; i < total_items_in_original_array; i++) {
-        free(c_ptr->array[i]);
-    }
-    
-    c_ptr->array = new_array;
-    
-
-    
 }
 
 void* OC_find_item(const struct Ordered_container* c_ptr, const void* data_ptr) {
@@ -235,7 +191,6 @@ void* OC_find_item_arg(const struct Ordered_container* c_ptr, const void* arg_pt
 }
 
 
-/* Functions that traverse the items in the container, processing each item in order. */
 void OC_apply(const struct Ordered_container* c_ptr, OC_apply_fp_t afp) {
     for (int i = 0; i < c_ptr->size; i++) {
         afp(*(void**)(c_ptr->array[i]));
