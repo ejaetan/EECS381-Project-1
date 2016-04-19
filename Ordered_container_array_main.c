@@ -31,6 +31,11 @@ int main(void)
     OC_insert(container1, no6);
     print_container(container1);
     
+    
+    void* found_item = OC_find_item(container1, no3);
+    OC_delete_item(container1, found_item);
+    print_container(container1);
+    
     return 0;
 }
 

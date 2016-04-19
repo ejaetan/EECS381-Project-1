@@ -95,7 +95,23 @@ void* OC_get_data_ptr(const void* item_ptr) {
 /* Delete the specified item.
  Caller is responsible for any deletion of the data pointed to by the item. */
 void OC_delete_item(struct Ordered_container* c_ptr, void* item_ptr) {
-
+    
+    if (c_ptr) {
+        int i = 0;
+        
+        for (; i < c_ptr->size; i++) {
+            if (c_ptr->array[i] == item_ptr) {
+                break;
+            }
+        }
+        
+        for (; i < c_ptr->size - 1; i++) {
+            c_ptr->array[i] = c_ptr->array[i + 1];
+        }
+        
+        c_ptr->array[i] = NULL;
+        c_ptr->size--;
+    }
 }
 
 /*
@@ -161,20 +177,6 @@ void OC_insert(struct Ordered_container* c_ptr, void* data_ptr) {
 
 }
 
-
-void grow_array(struct Ordered_container* c_ptr) {
-    int copy_array_size = 2 * (c_ptr->allocation + 1);
-    void** copy_array =  (void**) malloc_with_error_handling(copy_array_size * sizeof(void*));
-    
-    for (int i = 0; i < c_ptr->size; i++) {
-        copy_array[i] = c_ptr->array[i];
-    }
-    
-    free(c_ptr->array);
-    c_ptr->array = copy_array;
-
-}
-
 void* OC_find_item(const struct Ordered_container* c_ptr, const void* data_ptr) {
     int array_index = 0;
     int search_result = binary_search(c_ptr, data_ptr, c_ptr->comp_fun , &array_index);
@@ -236,5 +238,18 @@ void print_container(struct Ordered_container* c_ptr) {
         printf("%d\t", *(int*)(c_ptr->array[i]));
     }
     printf("\n");
+}
+
+void grow_array(struct Ordered_container* c_ptr) {
+    int copy_array_size = 2 * (c_ptr->allocation + 1);
+    void** copy_array =  (void**) malloc_with_error_handling(copy_array_size * sizeof(void*));
+    
+    for (int i = 0; i < c_ptr->size; i++) {
+        copy_array[i] = c_ptr->array[i];
+    }
+    
+    free(c_ptr->array);
+    c_ptr->array = copy_array;
+    
 }
 
