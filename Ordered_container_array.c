@@ -33,21 +33,15 @@ struct Ordered_container* OC_create_container(OC_comp_fp_t f_ptr) {
 
 void OC_destroy_container(struct Ordered_container* c_ptr) {
     if (c_ptr) {
-        
-        int total_memory_allocated = c_ptr->allocation;
-        int total_items_in_use = c_ptr->size;
+        g_Container_items_allocated -= c_ptr->allocation;
+        g_Container_items_in_use -= c_ptr->size;
+        g_Container_count--;
 
-        for(int i = 0; i < total_memory_allocated; i++) {
-            free(c_ptr->array[i]);
-            g_Container_items_allocated--;
-        }
-        
-        
+        free(c_ptr->array);
         free(c_ptr);
         c_ptr = NULL;
         
-        g_Container_items_in_use -= total_items_in_use;
-        g_Container_count--;
+        
     }
     
 }
@@ -59,17 +53,14 @@ void OC_clear(struct Ordered_container* c_ptr) {
         int total_memory_allocated = c_ptr->allocation;
         int total_items_in_use = c_ptr->size;
         
-        for(int i = 0; i < total_memory_allocated; i++) {
-            free(c_ptr->array[i]);
-            g_Container_items_allocated--;
-        }
+        free(c_ptr->array);
         
         c_ptr->allocation = 3;
         c_ptr->array = (void**) malloc_with_error_handling((c_ptr->allocation) * sizeof(void*));;
         c_ptr->size = 0;
         
         g_Container_items_in_use -= total_items_in_use;
-        g_Container_items_allocated += 3;
+        g_Container_items_allocated -= (total_memory_allocated - 3);
     }
 }
 
@@ -97,20 +88,16 @@ void* OC_get_data_ptr(const void* item_ptr) {
 void OC_delete_item(struct Ordered_container* c_ptr, void* item_ptr) {
     
     if (c_ptr) {
-        int i = 0;
+        void** array_end = c_ptr->array + c_ptr->size;
+        void** given_item_ptr = (void**) item_ptr;
         
-        for (; i < c_ptr->size; i++) {
-            if (c_ptr->array[i] == item_ptr) {
-                break;
-            }
+        while (given_item_ptr < array_end) {
+            *given_item_ptr = *(given_item_ptr + 1);
+            given_item_ptr++;
         }
-        
-        for (; i < c_ptr->size - 1; i++) {
-            c_ptr->array[i] = c_ptr->array[i + 1];
-        }
-        
-        c_ptr->array[i] = NULL;
         c_ptr->size--;
+        g_Container_items_in_use--;
+        
     }
 }
 
@@ -180,22 +167,27 @@ void OC_insert(struct Ordered_container* c_ptr, void* data_ptr) {
 void* OC_find_item(const struct Ordered_container* c_ptr, const void* data_ptr) {
     int array_index = 0;
     int search_result = binary_search(c_ptr, data_ptr, c_ptr->comp_fun , &array_index);
-    
-    return (search_result == 0) ? c_ptr->array[array_index] : NULL;
+    void** found_ptr = &c_ptr->array[array_index];
+
+    return (search_result == 0) ? found_ptr: NULL;
 }
 
 void* OC_find_item_arg(const struct Ordered_container* c_ptr, const void* arg_ptr, OC_find_item_arg_fp_t fafp) {
     
     int array_index = 0;
     int search_result = binary_search(c_ptr, arg_ptr, fafp , &array_index);
+    void** found_ptr = &c_ptr->array[array_index];
     
-    return (search_result == 0) ? c_ptr->array[array_index] : NULL;
+    return (search_result == 0) ? found_ptr : NULL;
 }
 
 
 void OC_apply(const struct Ordered_container* c_ptr, OC_apply_fp_t afp) {
-    for (int i = 0; i < c_ptr->size; i++) {
-        afp(*(void**)(c_ptr->array[i]));
+    void** array_end = c_ptr->array + c_ptr->size;
+    void** array_index_ptr = c_ptr->array;  //point it to c_ptr->array[0]
+    while (array_index_ptr < array_end) {
+        afp(*array_index_ptr);
+        array_index_ptr++;
     }
 }
 
@@ -203,9 +195,11 @@ void OC_apply(const struct Ordered_container* c_ptr, OC_apply_fp_t afp) {
 int OC_apply_if(const struct Ordered_container* c_ptr, OC_apply_if_fp_t afp) {
     int result = -1;
     
-    for (int i = 0; (i < c_ptr->size) &&
-         (result = afp(*(void**)(c_ptr->array[i]))) == 0 ; i++) {
-        ;
+    void** array_end = c_ptr->array + c_ptr->size;
+    void** array_index_ptr = c_ptr->array;  //at start point it to c_ptr->array[0]
+    while ( (array_index_ptr < array_end) &&
+           ((result = afp(array_index_ptr)) == 0) ) {
+        array_index_ptr++;
     }
     
     return result;
@@ -214,17 +208,19 @@ int OC_apply_if(const struct Ordered_container* c_ptr, OC_apply_if_fp_t afp) {
 void OC_apply_arg(const struct Ordered_container* c_ptr, OC_apply_arg_fp_t afp,
                   void* arg_ptr) {
     
-    int i = 0;
-    while (i < c_ptr->size) {
-        afp(*(void**) (c_ptr->array[i]), arg_ptr);
-        i++;
+    void** array_end = c_ptr->array + c_ptr->size;
+    void** array_index_ptr = c_ptr->array;  //point it to c_ptr->array[0]
+    while (array_index_ptr < array_end) {
+        afp(*array_index_ptr, arg_ptr);
+        array_index_ptr++;
     }
+
 
 }
 
 int OC_apply_if_arg(const struct Ordered_container* c_ptr, OC_apply_if_arg_fp_t afp, void* arg_ptr) {
     int result = -1;
-    
+        
     for (int i = 0; (i < c_ptr->size) &&
          (result = afp(*(void**)(c_ptr->array[i]), arg_ptr)) == 0 ; i++) {
         ;

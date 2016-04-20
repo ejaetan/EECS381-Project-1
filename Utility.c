@@ -38,12 +38,12 @@ void* malloc_with_error_handling(size_t size) {
     return new_ptr;
 }
 
-/*
+
 int compare_Person_lastname(struct Person *Person1, struct Person *Person2) {
     return strcmp(get_Person_lastname(Person1), get_Person_lastname(Person2));
     
 }
- */
+ 
 
 int time_conversion(int time) {
     if ( (time < 5) && (time > 0) ) {

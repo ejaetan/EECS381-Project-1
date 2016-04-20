@@ -78,8 +78,9 @@ int is_Meeting_participant_present(const struct Meeting* meeting_ptr, const stru
 int remove_Meeting_participant(struct Meeting* meeting_ptr, const struct Person* person_ptr) {
     
     assert(meeting_ptr);
-    if (OC_find_item(meeting_ptr->participants, (void*) person_ptr)) {
-        OC_delete_item(meeting_ptr->participants,(void*) person_ptr);
+    void* item_ptr = OC_find_item(meeting_ptr->participants, (void*) person_ptr);
+    if (item_ptr) {
+        OC_delete_item(meeting_ptr->participants,(void*) item_ptr);
         return 0;
     } else {
         return -1;
@@ -158,6 +159,7 @@ struct Person *find_participant_from_infile(const struct Ordered_container* peop
     assert(scan_lastname_result == 1);
     
     void *found_lastname_ptr = OC_find_item_arg(people, lastname, (OC_find_item_arg_fp_t) compare_Person_with_given_lastname);
+    
     
     if (found_lastname_ptr) {
         found_participant = OC_get_data_ptr(found_lastname_ptr);

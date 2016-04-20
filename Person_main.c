@@ -47,6 +47,7 @@ int main(void) {
     fp = fopen("Person_loadfile.txt", "r");
     
     struct Person *load_Person1 = load_Person(fp);
+    printf("...print loadfile...\n");
     print_Person(load_Person1);
     fclose(fp);
     

@@ -56,7 +56,8 @@ int main(void) {
     
     add_Room_Meeting(room2, new_Meeting1);
     add_Room_Meeting(room2, new_Meeting2);
-    
+
+    printf("\n...saveload/file...\n");
     FILE *fp = fopen("Room_savefile.txt", "w");
     save_Room(room2, fp);
     fclose(fp);

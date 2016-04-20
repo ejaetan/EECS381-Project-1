@@ -437,14 +437,14 @@ void delete_individual(struct Ordered_container* people_ptr, struct Ordered_cont
     struct Person *found_Person = OC_get_data_ptr(found_lastname_item_ptr);
     int apply_result = OC_apply_if_arg(rooms_ptr, (OC_apply_if_arg_fp_t) call_OC_apply_if_arg, found_Person);
     
-    if (!apply_result) {
+    if (apply_result == 1) {
         printf("This person is a participant in a meeting!\n");
         skip_type_ahead();
         return;
     }
-    
-    OC_delete_item(people_ptr, found_lastname_item_ptr);
     printf("Person %s deleted\n", get_Person_lastname(found_Person));
+    destroy_Person(found_Person);
+    OC_delete_item(people_ptr, found_lastname_item_ptr);
 }
 
 void delete_room(struct Ordered_container* rooms_ptr) {
@@ -508,8 +508,10 @@ void delete_participant(struct Ordered_container* people_ptr, struct Ordered_con
         return;
     }
     
-    remove_Meeting_participant(found_meeting_ptr, found_Person);
     printf("Participant %s deleted\n", get_Person_lastname(found_Person));
+    int remove_result = remove_Meeting_participant(found_meeting_ptr, found_Person);
+    assert(remove_result == 0);
+    
 }
 
 void delete_schedule(struct Ordered_container* rooms_ptr) {
