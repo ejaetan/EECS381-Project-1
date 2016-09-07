@@ -1,5 +1,5 @@
 # EECS381-Project-1
-Class: EECS381 Fall 2015
+####Class: EECS381 Fall 2015
 
 EECS381 is a class that is offered by University of Michigan. The goals of this class are to thoroughly learn C and C++ advanced programming techniques, design patterns, and object-oriented design. 
 
@@ -9,7 +9,7 @@ Throughout this projects, I learnt to master pointers, encapsulation, design wel
 
 
 
-User Stories
+###User Stories
 - Write a program that keeps track of a meeting schedule and which people are in what meetings in which rooms. 
 - All the meetings are on the same day.
 - The rooms are kept in order by room number, the meetings are kept in order of time, and the people are kept in alphabetical order of last name. 
