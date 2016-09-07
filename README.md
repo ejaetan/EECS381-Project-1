@@ -7,6 +7,8 @@ The purpose of this project is to use C as the programming language and implemen
 
 Throughout this projects, I learnt to master pointers, encapsulation, design well hierachy functions to maximize reuse, create meaningful header files, uses opaque types to hide implementation details from client code, create generic data structure or container with void*.
 
+
+
 User Stories
 - Write a program that keeps track of a meeting schedule and which people are in what meetings in which rooms. 
 - All the meetings are on the same day.
