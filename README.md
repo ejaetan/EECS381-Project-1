@@ -1,6 +1,5 @@
 # EECS381-Project-1
-Class: EECS381
-Version: Fall 2015
+Class: EECS381 Fall 2015
 
 EECS381 is a class that is offered by University of Michigan. The goals of this class are to thoroughly learn C and C++ advanced programming techniques, design patterns, and object-oriented design. 
 
